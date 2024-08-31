@@ -1,9 +1,10 @@
 import { For, Match, onMount, Show, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
-import { Thing, DBObj, STATES, StateType } from "./types";
+import { Thing } from "./types";
 import open_database from "./utils/open_database";
 import get_things from "./utils/get_things";
 import add_thing from "./utils/add_thing";
+import count from "./utils/count";
 import Form from "./components/Form/Form";
 import Card from "./components/Card/Card";
 import "normalize.css";
@@ -14,6 +15,19 @@ type TSType = {
   state: StateType;
 };
 
+type DBObj = {
+  db: IDBDatabase | null;
+  error: boolean;
+};
+
+const STATES = {
+  LOADING: "LOADING",
+  READY: "READY",
+  ERROR: "ERROR",
+} as const;
+
+type StateType = (typeof STATES)[keyof typeof STATES];
+
 function App() {
   const [dbObj, setDbObj] = createStore<DBObj>({ db: null, error: false });
   const [thingsState, setThingsState] = createStore<TSType>({
@@ -21,8 +35,34 @@ function App() {
     state: STATES.LOADING,
   });
 
+  async function handle_count(dc: number, id: string) {
+    try {
+      setThingsState(
+        "things",
+        (thing) => thing.id === id,
+        "count",
+        (count) => count + dc
+      );
+
+      await count(dbObj.db!, id, dc);
+    } catch (error) {
+      console.log(error);
+
+      //a toast!
+
+      setThingsState(
+        "things",
+        (thing) => thing.id === id,
+        "count",
+        (count) => count - dc
+      );
+    }
+  }
+
   async function handle_addition(thing: Thing) {
     await add_thing(dbObj.db!, thing);
+
+    setThingsState("things", (prev) => [thing, ...prev]);
   }
 
   async function load_things(db: IDBDatabase) {
@@ -65,7 +105,7 @@ function App() {
           <Match when={thingsState.state === STATES.READY}>
             <p>ready...</p>
             <For each={thingsState.things}>
-              {(thing) => <Card thing={thing} />}
+              {(thing) => <Card thing={thing} count={handle_count} />}
             </For>
           </Match>
           <Match when={thingsState.state === STATES.ERROR}>

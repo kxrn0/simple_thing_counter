@@ -14,6 +14,9 @@ importers:
       solid-js:
         specifier: ^1.8.20
         version: 1.8.21
+      viewerjs:
+        specifier: ^1.11.6
+        version: 1.11.6
     devDependencies:
       '@types/node':
         specifier: ^22.5.1
@@ -624,6 +627,9 @@ packages:
   validate-html-nesting@1.2.2:
     resolution: {integrity: sha512-hGdgQozCsQJMyfK5urgFcWEqsSSrK63Awe0t/IMR0bZ0QMtnuaiHzThW81guu3qx9abLi99NEuiaN6P9gVYsNg==}
 
+  viewerjs@1.11.6:
+    resolution: {integrity: sha512-TlhdSp2oEOLFXvEp4psKaeTjR5zBjTRcM/sHUN8PkV1UWuY8HKC8n7GaVdW5Xqnwdr/F1OmzLik1QwDjI4w/nw==}
+
   vite-plugin-solid@2.10.2:
     resolution: {integrity: sha512-AOEtwMe2baBSXMXdo+BUwECC8IFHcKS6WQV/1NEd+Q7vHPap5fmIhLcAzr+DUJ04/KHx/1UBU0l1/GWP+rMAPQ==}
     peerDependencies:
@@ -1216,6 +1222,8 @@ snapshots:
       picocolors: 1.0.1
 
   validate-html-nesting@1.2.2: {}
+
+  viewerjs@1.11.6: {}
 
   vite-plugin-solid@2.10.2(solid-js@1.8.21)(vite@5.4.2(@types/node@22.5.1)(sass@1.77.8)):
     dependencies:
