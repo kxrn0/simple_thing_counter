@@ -6,7 +6,11 @@ export default function get_things(db: IDBDatabase): Promise<Thing[]> {
     const store = transaction.objectStore("things");
     const request = store.getAll();
 
-    request.addEventListener("success", () => resolve(request.result));
+    request.addEventListener("success", () => {
+      const things = request.result.map(({ image, ...thing }) => thing);
+
+      resolve(things);
+    });
 
     request.addEventListener("error", () => reject(request.error));
   });

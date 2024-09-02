@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "corvu": "^0.7.1",
     "normalize.css": "^8.0.1",
     "solid-js": "^1.8.20",
     "viewerjs": "^1.11.6"

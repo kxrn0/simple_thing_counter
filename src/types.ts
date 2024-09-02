@@ -1,7 +1,7 @@
 export type Thing = {
   name: string;
   count: number;
-  image: File;
+  image?: File;
   thumbnail: Blob;
   //   index: number;
   id: string;

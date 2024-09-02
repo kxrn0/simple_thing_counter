@@ -7,8 +7,9 @@ import add_thing from "./utils/add_thing";
 import count from "./utils/count";
 import Form from "./components/Form/Form";
 import Card from "./components/Card/Card";
+import styles from "./App.module.scss";
 import "normalize.css";
-import "./App.module.scss";
+import "./style.css";
 
 type TSType = {
   things: Thing[];
@@ -80,6 +81,12 @@ function App() {
     }
   }
 
+  function remove_thing(id: string) {
+    setThingsState("things", (things) =>
+      things.filter((thing) => thing.id !== id)
+    );
+  }
+
   onMount(async () => {
     try {
       const db = await open_database();
@@ -95,7 +102,7 @@ function App() {
   });
 
   return (
-    <div>
+    <div class={styles.app}>
       <Form add_thing={handle_addition} />
       <Show when={dbObj.db} fallback={<p>loading database...</p>}>
         <Switch>
@@ -104,9 +111,19 @@ function App() {
           </Match>
           <Match when={thingsState.state === STATES.READY}>
             <p>ready...</p>
-            <For each={thingsState.things}>
-              {(thing) => <Card thing={thing} count={handle_count} />}
-            </For>
+
+            <div class={styles["cards-container"]}>
+              <For each={thingsState.things}>
+                {(thing) => (
+                  <Card
+                    thing={thing}
+                    count={handle_count}
+                    db={dbObj.db}
+                    remove_thing={remove_thing}
+                  />
+                )}
+              </For>
+            </div>
           </Match>
           <Match when={thingsState.state === STATES.ERROR}>
             <p>something went wrong!</p>

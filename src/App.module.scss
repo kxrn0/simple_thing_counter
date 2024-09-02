@@ -1,0 +1,15 @@
+.app {
+  background: skyblue;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100px;
+  min-height: 100vh;
+
+  .cards-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+  }
+}

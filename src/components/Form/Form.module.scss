@@ -1,0 +1,46 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+
+  .image-container {
+    background: orange;
+    display: grid;
+    place-items: center;
+    position: relative;
+    width: 150px;
+    height: 150px;
+
+    .file-input {
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .image-icon {
+      width: 100%;
+      height: 100%;
+    }
+
+    .button {
+      position: absolute;
+      top: 5px;
+      display: grid;
+      place-items: center;
+      padding: 5px;
+
+      .icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      &.right {
+        right: 5px;
+      }
+
+      &.left {
+        left: 5px;
+      }
+    }
+  }
+}
