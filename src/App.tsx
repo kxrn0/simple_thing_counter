@@ -2,15 +2,13 @@ import { For, Match, onMount, Show, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import toast, { Toaster } from "solid-toast";
 import { Thing } from "./types";
+import Form from "./components/Form/Form";
+import Card from "./components/Card/Card";
 import open_database from "./utils/open_database";
 import get_things from "./utils/get_things";
 import add_thing from "./utils/add_thing";
 import count from "./utils/count";
-import Form from "./components/Form/Form";
-import Card from "./components/Card/Card";
 import styles from "./App.module.scss";
-import "normalize.css";
-import "./style.css";
 
 type TSType = {
   things: Thing[];

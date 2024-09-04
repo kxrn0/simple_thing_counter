@@ -4,12 +4,20 @@ export default function get_things(db: IDBDatabase): Promise<Thing[]> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction("things", "readonly");
     const store = transaction.objectStore("things");
-    const request = store.getAll();
+    const index = store.index("position_index");
+    const request = index.openCursor(null, "prev");
+    const things: Thing[] = [];
 
     request.addEventListener("success", () => {
-      const things = request.result.map(({ image, ...thing }) => thing);
+      const cursor = request.result;
 
-      resolve(things);
+      if (cursor) {
+        const { image, ...thing } = cursor.value;
+
+        things.push(thing);
+
+        cursor.continue();
+      } else resolve(things);
     });
 
     request.addEventListener("error", () => reject(request.error));

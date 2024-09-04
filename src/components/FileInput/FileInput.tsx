@@ -1,4 +1,5 @@
 import { Show } from "solid-js";
+import { ToastHandler } from "solid-toast";
 import { FileManager } from "./hooks/useFileInput";
 import is_valid_type from "../../utils/is_valid_type";
 import create_thumbnail from "../../utils/create_thumbnail";
@@ -7,7 +8,6 @@ import replace_icon from "./assets/replace_icon.svg";
 import x_icon from "./assets/x_icon.svg";
 import shared from "../../shared.module.scss";
 import styles from "./FileInput.module.scss";
-import { ToastHandler } from "solid-toast";
 
 type Props = {
   name: string;
@@ -30,18 +30,9 @@ export default function FileInput(props: Props) {
     const input = event.target as HTMLInputElement;
     const files = input.files as FileList;
     const file = files[0];
+    const isValid = file && is_valid_type(file.type);
 
-    if (!file) {
-      props.manager.clear_file_input();
-      props.manager.setError(true);
-      inputRef.value = "";
-
-      return;
-    }
-
-    const isValid = is_valid_type(file.type);
-
-    if (!isValid) {
+    if (!file || !isValid) {
       props.manager.clear_file_input();
       props.manager.setError(true);
       inputRef.value = "";

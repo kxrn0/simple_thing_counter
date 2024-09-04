@@ -3,7 +3,7 @@ export type Thing = {
   count: number;
   image?: File;
   thumbnail: Blob;
-  //   index: number;
+  index: number;
   id: string;
 };
 

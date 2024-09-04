@@ -1,12 +1,12 @@
 import { createSignal, Show } from "solid-js";
-import toast, { ToastHandler } from "solid-toast";
-import is_valid_type from "../../utils/is_valid_type";
-import create_thumbnail from "../../utils/create_thumbnail";
-import useFileInput from "../FileInput/hooks/useFileInput";
+import { ToastHandler } from "solid-toast";
 import { Thing, THUMBNAIL_SIZE } from "../../types";
 import FileInput from "../FileInput/FileInput";
-import styles from "./Form.module.scss";
+import useFileInput from "../FileInput/hooks/useFileInput";
+import is_valid_type from "../../utils/is_valid_type";
+import create_thumbnail from "../../utils/create_thumbnail";
 import shared from "../../shared.module.scss";
+import styles from "./Form.module.scss";
 
 export type Data = HTMLFormElement & {
   name: HTMLInputElement;
@@ -51,7 +51,8 @@ export default function Form(props: Props) {
 
     try {
       const thumbnail = await create_thumbnail(image, THUMBNAIL_SIZE);
-      const thing = { name, count, image, thumbnail, id };
+      const index = Date.now();
+      const thing = { name, count, image, thumbnail, index, id };
 
       await props.add_thing(thing);
 
@@ -70,7 +71,7 @@ export default function Form(props: Props) {
         name="file"
         size={THUMBNAIL_SIZE}
         manager={manager}
-        errorToast={toast.error}
+        errorToast={props.errorToast}
       />
       <label class={styles["name-container"]}>
         <span class="fs-m">Name:</span>

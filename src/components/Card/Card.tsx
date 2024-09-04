@@ -1,22 +1,22 @@
 import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
+import { createStore } from "solid-js/store";
+import { ToastHandler } from "solid-toast";
+import Dialog from "corvu/dialog";
 import { Thing, THUMBNAIL_SIZE } from "../../types";
+import FileInput from "../FileInput/FileInput";
+import useFileInput from "../FileInput/hooks/useFileInput";
+import create_thumbnail from "../../utils/create_thumbnail";
+import is_valid_type from "../../utils/is_valid_type";
 import create_viewer from "./utils/create_viewer";
 import delete_thing from "./utils/delete_thing";
-import styles from "./Card.module.scss";
-import shared from "../../shared.module.scss";
-import "viewerjs/dist/viewer.css";
-import Dialog from "corvu/dialog";
-import { ToastHandler } from "solid-toast";
+import update_counter, { Update } from "./utils/update_counter";
 import trash from "./assets/trash.svg";
 import plus from "./assets/plus.svg";
 import minus from "./assets/minus.svg";
 import pencil from "./assets/pencil.svg";
-import useFileInput from "../FileInput/hooks/useFileInput";
-import FileInput from "../FileInput/FileInput";
-import is_valid_type from "../../utils/is_valid_type";
-import { createStore } from "solid-js/store";
-import create_thumbnail from "../../utils/create_thumbnail";
-import update_counter from "./utils/update_counter";
+import shared from "../../shared.module.scss";
+import styles from "./Card.module.scss";
+import "viewerjs/dist/viewer.css";
 
 type Values = HTMLFormElement & {
   name: HTMLInputElement;
@@ -56,9 +56,31 @@ export default function Card(props: Props) {
     const name = form.name.value.trim();
     const number = Number(form.number.value.trim());
     const badNumber = isNaN(number);
-    const files = form.file.files as FileList;
-    const image = files[0];
-    const isValid = image && is_valid_type(image.type);
+
+    let newImage: File | null = null;
+    let newThumbnail: Blob | null = null;
+    let isValid: boolean;
+
+    if (manager.hasUpdated()) {
+      const files = form.file.files as FileList;
+      const image = files[0];
+
+      isValid = image && is_valid_type(image.type);
+
+      if (isValid) {
+        newImage = image;
+
+        try {
+          newThumbnail = await create_thumbnail(newImage, THUMBNAIL_SIZE);
+        } catch (error) {
+          console.log(error);
+
+          props.errorToast("something went wrong!");
+
+          return;
+        }
+      }
+    } else isValid = true;
 
     if (!name || !isValid || badNumber) {
       if (!name) {
@@ -74,6 +96,12 @@ export default function Card(props: Props) {
       }
 
       if (!isValid) {
+        form.reset();
+
+        if (!errors.name) form.name.value = name;
+
+        if (!errors.number) form.number.value = number.toString();
+
         manager.clear_file_input();
         manager.setError(true);
       }
@@ -82,20 +110,26 @@ export default function Card(props: Props) {
     }
 
     try {
-      const newThumbnail = await create_thumbnail(image, THUMBNAIL_SIZE);
-      const data = {
-        name,
-        count: number,
-        image,
-        thumbnail: newThumbnail,
-      };
-      const update = await update_counter(props.db, props.thing.id, data);
-      const url = URL.createObjectURL(newThumbnail);
+      const data: Update = { name, count: number };
 
-      URL.revokeObjectURL(thumbnail());
+      if (manager.hasUpdated()) {
+        data.image = newImage!;
+        data.thumbnail = newThumbnail!;
+      }
+
+      const update = await update_counter(props.db, props.thing.id, data);
+
+      if (manager.hasUpdated()) {
+        const url = URL.createObjectURL(newThumbnail!);
+
+        URL.revokeObjectURL(thumbnail());
+
+        setThumbnail(url);
+      }
+
       props.update(update);
 
-      setThumbnail(url);
+      setIsEditing(false);
     } catch (error) {}
   }
 
@@ -114,10 +148,20 @@ export default function Card(props: Props) {
     }
   }
 
-  onMount(() => {
-    const thumbnail = URL.createObjectURL(props.thing.thumbnail);
+  function close_edit() {
+    setIsEditing(false);
+    setErrors("name", false);
+    setErrors("number", false);
+  }
 
-    setThumbnail(thumbnail);
+  onMount(() => {
+    const mine = URL.createObjectURL(props.thing.thumbnail);
+    const yours = URL.createObjectURL(props.thing.thumbnail);
+
+    manager.setThumbnail(yours);
+    manager.setHasUpdated(false);
+
+    setThumbnail(mine);
   });
 
   createEffect(async () => {
@@ -147,6 +191,17 @@ export default function Card(props: Props) {
 
         props.errorToast("something went wrong!");
       }
+    }
+  });
+
+  createEffect(() => {
+    if (!isEditing()) manager.revoke();
+    else {
+      const url = URL.createObjectURL(props.thing.thumbnail);
+
+      manager.setThumbnail(url);
+      manager.setHasUpdated(false);
+      manager.setError(false);
     }
   });
 
@@ -195,32 +250,44 @@ export default function Card(props: Props) {
       </button>
       <Dialog
         open={isEditing()}
-        onEscapeKeyDown={() => setIsEditing(false)}
-        onOutsidePointer={() => setIsEditing(false)}
+        onEscapeKeyDown={close_edit}
+        onOutsidePointer={close_edit}
       >
         <Dialog.Portal>
           <Dialog.Overlay />
           <Dialog.Content>
             <Dialog.Label class="fs-l">Edit Counter</Dialog.Label>
-            <form onSubmit={handle_submit}>
+            <form onSubmit={handle_submit} class={styles["edit-form"]}>
               <FileInput
                 name="file"
                 size={THUMBNAIL_SIZE}
                 manager={manager}
                 errorToast={props.errorToast}
               />
-              <label>
+              <label class={`fs-m ${styles["label"]}`}>
                 <span>Name:</span>
-                <input type="text" name="name" value={props.thing.name} />
+                <input
+                  type="text"
+                  name="name"
+                  value={props.thing.name}
+                  onInput={() => setErrors("name", false)}
+                  class={`fs-r ${styles["input"]}`}
+                />
                 <Show when={errors.name}>
                   <p class={`fs-s ${shared["error"]}`}>
                     please enter a valid name!
                   </p>
                 </Show>
               </label>
-              <label>
+              <label class={`fs-m ${styles["label"]}`}>
                 <span>Count:</span>
-                <input type="number" value={props.thing.count} name="number" />
+                <input
+                  type="number"
+                  value={props.thing.count}
+                  name="number"
+                  onInput={() => setErrors("number", false)}
+                  class={`fs-r ${styles["input"]}`}
+                />
                 <Show when={errors.number}>
                   <p class={`fs-s ${shared["error"]}`}>
                     please enter a valid number!
@@ -228,9 +295,15 @@ export default function Card(props: Props) {
                 </Show>
               </label>
               <div class={styles["buttons"]}>
-                <button>save</button>
-                <button type="button" onClick={() => setIsEditing(false)}>
-                  cancel
+                <button class={`fs-m ${styles["button"]} ${styles["green"]}`}>
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={close_edit}
+                  class={`fs-m ${styles["button"]} ${styles["red"]}`}
+                >
+                  Cancel
                 </button>
               </div>
             </form>

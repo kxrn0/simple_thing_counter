@@ -1,16 +1,16 @@
 import { Thing } from "../../../types";
 
-type Data = {
-  name: string;
-  count: number;
-  image: File;
-  thumbnail: Blob;
+export type Update = {
+  name?: string;
+  count?: number;
+  image?: File;
+  thumbnail?: Blob;
 };
 
 export default function update_counter(
   db: IDBDatabase,
   id: string,
-  data: Data
+  data: Update
 ): Promise<Thing> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction("things", "readwrite");

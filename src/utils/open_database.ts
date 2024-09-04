@@ -9,7 +9,9 @@ export default function open_database(): Promise<IDBDatabase> {
     openRequest.addEventListener("upgradeneeded", () => {
       const db = openRequest.result;
 
-      db.createObjectStore("things", { keyPath: "id" });
+      const store = db.createObjectStore("things", { keyPath: "id" });
+
+      store.createIndex("position_index", "index", { unique: true });
     });
   });
 }
