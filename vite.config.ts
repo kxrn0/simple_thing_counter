@@ -35,14 +35,19 @@ const options: Partial<VitePWAOptions> = {
   },
 };
 
+const isDev = process.env.NODE_ENV === "development";
+const server = isDev
+  ? {
+      https: {
+        key: fs.readFileSync("smpcnt.local-key.pem"),
+        cert: fs.readFileSync("smpcnt.local.pem"),
+      },
+      host: "smpcnt.local",
+    }
+  : {};
+
 export default defineConfig({
   base,
   plugins: [solid(), VitePWA(options)],
-  server: {
-    https: {
-      key: fs.readFileSync("smpcnt.local-key.pem"),
-      cert: fs.readFileSync("smpcnt.local.pem"),
-    },
-    host: "smpcnt.local",
-  },
+  server,
 });
