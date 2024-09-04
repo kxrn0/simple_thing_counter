@@ -1,0 +1,64 @@
+.button {
+  background: rgba(25, 1, 1, 0.5);
+  outline: 1px solid rgb(255, 253, 253, 0.5);
+  display: grid;
+  place-items: center;
+  padding: 5px;
+  border: none;
+  border-radius: 100%;
+
+  .icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.right,
+.left {
+  position: absolute;
+  top: 5px;
+}
+
+.right {
+  right: 5px;
+}
+
+.left {
+  left: 5px;
+}
+
+.error {
+  background: lightcoral;
+  color: azure;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding: 2px;
+  border-radius: 2px;
+}
+
+[data-corvu-dialog-overlay] {
+  background-color: rgb(13, 12, 12, 0.5);
+  position: fixed;
+  inset: 0;
+}
+
+[data-corvu-dialog-content] {
+  background: turquoise;
+  width: 300px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  padding: 10px;
+  border-radius: 5px;
+
+  [data-corvu-dialog-label] {
+    color: midnightblue;
+    text-align: center;
+  }
+}

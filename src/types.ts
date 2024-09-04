@@ -6,3 +6,5 @@ export type Thing = {
   //   index: number;
   id: string;
 };
+
+export const THUMBNAIL_SIZE = 150;

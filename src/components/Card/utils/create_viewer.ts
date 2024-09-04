@@ -23,7 +23,11 @@ export default function create_viewer(
       img.src = url;
 
       img.addEventListener("load", () => {
-        const viewer = new Viewer(container, { toolbar: false });
+        const viewer = new Viewer(container, {
+          toolbar: false,
+          navbar: false,
+          title: false,
+        });
 
         resolve({ viewer, url, container });
       });

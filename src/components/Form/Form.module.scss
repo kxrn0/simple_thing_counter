@@ -1,46 +1,28 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  align-items: center;
+  gap: 25px;
 
-  .image-container {
-    background: orange;
-    display: grid;
-    place-items: center;
+  .name-container {
     position: relative;
-    width: 150px;
-    height: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 
-    .file-input {
-      width: 0;
-      height: 0;
-      position: absolute;
-    }
-
-    .image-icon {
-      width: 100%;
-      height: 100%;
-    }
-
-    .button {
-      position: absolute;
-      top: 5px;
-      display: grid;
-      place-items: center;
+    .input {
+      background: aliceblue;
       padding: 5px;
-
-      .icon {
-        width: 20px;
-        height: 20px;
-      }
-
-      &.right {
-        right: 5px;
-      }
-
-      &.left {
-        left: 5px;
-      }
+      border-radius: 5px;
     }
+  }
+
+  .button {
+    background: springgreen;
+    color: midnightblue;
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    width: 100%;
   }
 }

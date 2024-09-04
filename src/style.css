@@ -5,3 +5,31 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+@font-face {
+  font-family: open-sus;
+  src: url("./assets/fonts/SUSE-Light.ttf");
+}
+
+.fs-l,
+.fs-m,
+.fs-r,
+.fs-s {
+  font-family: open-sus, sans-serif;
+}
+
+.fs-l {
+  font-size: 30px;
+}
+
+.fs-m {
+  font-size: 20px;
+}
+
+.fs-r {
+  font-size: 16px;
+}
+
+.fs-s {
+  font-size: 13px;
+}

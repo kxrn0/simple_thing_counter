@@ -1,5 +1,6 @@
 import { For, Match, onMount, Show, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
+import toast, { Toaster } from "solid-toast";
 import { Thing } from "./types";
 import open_database from "./utils/open_database";
 import get_things from "./utils/get_things";
@@ -49,7 +50,7 @@ function App() {
     } catch (error) {
       console.log(error);
 
-      //a toast!
+      toast.error("something went wrong!");
 
       setThingsState(
         "things",
@@ -61,7 +62,9 @@ function App() {
   }
 
   async function handle_addition(thing: Thing) {
-    await add_thing(dbObj.db!, thing);
+    if (!dbObj.db) return;
+
+    await add_thing(dbObj.db, thing);
 
     setThingsState("things", (prev) => [thing, ...prev]);
   }
@@ -77,6 +80,8 @@ function App() {
     } catch (error) {
       console.log(error);
 
+      toast.error("something went wrong!");
+
       setThingsState("state", STATES.ERROR);
     }
   }
@@ -85,6 +90,10 @@ function App() {
     setThingsState("things", (things) =>
       things.filter((thing) => thing.id !== id)
     );
+  }
+
+  function update(thing: Thing) {
+    setThingsState("things", (other) => other.id === thing.id, thing);
   }
 
   onMount(async () => {
@@ -103,15 +112,13 @@ function App() {
 
   return (
     <div class={styles.app}>
-      <Form add_thing={handle_addition} />
+      <Form add_thing={handle_addition} errorToast={toast.error} />
       <Show when={dbObj.db} fallback={<p>loading database...</p>}>
         <Switch>
           <Match when={thingsState.state === STATES.LOADING}>
             <p>loading things...</p>
           </Match>
           <Match when={thingsState.state === STATES.READY}>
-            <p>ready...</p>
-
             <div class={styles["cards-container"]}>
               <For each={thingsState.things}>
                 {(thing) => (
@@ -120,6 +127,8 @@ function App() {
                     count={handle_count}
                     db={dbObj.db}
                     remove_thing={remove_thing}
+                    update={update}
+                    errorToast={toast.error}
                   />
                 )}
               </For>
@@ -131,6 +140,9 @@ function App() {
           </Match>
         </Switch>
       </Show>
+      <Toaster
+        toastOptions={{ style: { background: "red", color: "azure" } }}
+      />
     </div>
   );
 }

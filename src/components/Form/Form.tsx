@@ -1,49 +1,46 @@
-import { createSignal, onCleanup, Show } from "solid-js";
-import { Thing } from "../../types";
-import create_thumbnail from "./utils/create_thumbnail";
-import { createStore } from "solid-js/store";
-import is_valid_type from "./utils/is_valid_type";
-import image_icon from "./assets/image_icon.svg";
-import replace_icon from "./assets/replace_icon.svg";
-import x_icon from "./assets/x_icon.svg";
+import { createSignal, Show } from "solid-js";
+import toast, { ToastHandler } from "solid-toast";
+import is_valid_type from "../../utils/is_valid_type";
+import create_thumbnail from "../../utils/create_thumbnail";
+import useFileInput from "../FileInput/hooks/useFileInput";
+import { Thing, THUMBNAIL_SIZE } from "../../types";
+import FileInput from "../FileInput/FileInput";
 import styles from "./Form.module.scss";
+import shared from "../../shared.module.scss";
 
-type FormType = HTMLFormElement & {
+export type Data = HTMLFormElement & {
   name: HTMLInputElement;
   file: HTMLInputElement;
 };
 
 type Props = {
   add_thing: (thing: Thing) => Promise<void>;
+  errorToast: ToastHandler;
 };
 
 export default function Form(props: Props) {
-  const THUMBNAIL_SIZE = 150;
-  const [errors, setErrors] = createStore({ name: false, image: false });
-  const [thumbnail, setThumbnail] = createSignal("");
-  let inputRef!: HTMLInputElement;
+  const [nameError, setNameError] = createSignal(false);
+  const manager = useFileInput();
 
   async function handle_submit(event: Event) {
-    //chrome clears the input field if the file picked is
-    //closed without choosing another file...
-
     event.preventDefault();
 
-    const form = event.target as FormType;
+    const form = event.target as Data;
     const name = form.name.value.trim();
     const files = form.file.files as FileList;
     const image = files[0];
-    const isValid = is_valid_type(image.type);
+    const isValid = image && is_valid_type(image.type);
 
     if (!name || !isValid) {
       if (!name) {
         form.name.value = "";
-        setErrors("name", true);
+
+        setNameError(true);
       }
 
       if (!isValid) {
-        form.file.value = "";
-        setErrors("image", true);
+        manager.clear_file_input();
+        manager.setError(true);
       }
 
       return;
@@ -58,109 +55,36 @@ export default function Form(props: Props) {
 
       await props.add_thing(thing);
 
-      clear_file_input();
-      setErrors({ name: false, image: false });
+      manager.clear_file_input();
       form.reset();
     } catch (error) {
       console.log(error);
 
-      throw error;
+      props.errorToast("something went wrong!");
     }
   }
-
-  async function handle_change(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const files = input.files as FileList;
-    const file = files[0];
-
-    if (!file) return;
-
-    setErrors("image", false);
-
-    const isValid = is_valid_type(file.type);
-
-    if (!isValid) {
-      setErrors("image", true);
-      inputRef.value = "";
-
-      return;
-    }
-
-    try {
-      const image = await create_thumbnail(file, THUMBNAIL_SIZE);
-      const url = URL.createObjectURL(image);
-
-      URL.revokeObjectURL(thumbnail());
-
-      setThumbnail(url);
-    } catch (error) {
-      console.log(error);
-
-      //a toast!
-    }
-  }
-
-  function clear_file_input(event?: Event) {
-    event?.preventDefault();
-
-    URL.revokeObjectURL(thumbnail());
-    setThumbnail("");
-  }
-
-  onCleanup(() => URL.revokeObjectURL(thumbnail()));
 
   return (
     <form onSubmit={handle_submit} class={styles["form"]}>
-      <button onClick={() => console.log(inputRef.files)} type="button">
-        hi
-      </button>
-
-      <label class={styles["image-container"]}>
-        <input
-          type="file"
-          class={styles["file-input"]}
-          onChange={handle_change}
-          ref={inputRef}
-          name="file"
-        />
-        <Show
-          when={thumbnail()}
-          fallback={<img src={image_icon} class={styles["image-icon"]} />}
-        >
-          <img src={thumbnail()} alt="thumbnail" />
-          <button
-            aria-label="replace image"
-            class={`${styles["left"]} ${styles["button"]}`}
-            type="button"
-            onClick={() => inputRef?.click()}
-          >
-            <img src={replace_icon} aria-hidden="true" class={styles["icon"]} />
-          </button>
-          <button
-            aria-label="remove image"
-            class={`${styles["right"]} ${styles["button"]}`}
-            type="button"
-            onClick={clear_file_input}
-          >
-            <img src={x_icon} aria-hidden="true" class={styles["icon"]} />
-          </button>
-        </Show>
-        <Show when={errors.image}>
-          <p>please enter a valid file</p>
-        </Show>
-      </label>
-      <label>
-        <span>Name:</span>
+      <FileInput
+        name="file"
+        size={THUMBNAIL_SIZE}
+        manager={manager}
+        errorToast={toast.error}
+      />
+      <label class={styles["name-container"]}>
+        <span class="fs-m">Name:</span>
         <input
           type="text"
           name="name"
-          onChange={() => setErrors("name", false)}
+          onInput={() => setNameError(false)}
+          class={`fs-r ${styles["input"]}`}
         />
-        <Show when={errors.name}>
-          <p>please enter a valid name</p>
+        <Show when={nameError()}>
+          <p class={`fs-s ${shared["error"]}`}>please enter a valid name</p>
         </Show>
       </label>
-      <button>create</button>
+      <button class={`fs-l ${styles["button"]}`}>create</button>
     </form>
   );
 }
